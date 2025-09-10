@@ -50,12 +50,16 @@ def main():
     FRAME_RATE = 29.97      # Frame rate
     BITRATE = "6M"          # Video bitrate
 
-    # Number of videos to download/process simultaneously
-    # Keep this low (1-3) to avoid overwhelming Google Drive
-    MAX_WORKERS = 2
+    # Sequential processing only (no parallel downloads)
+    # Each video: Download → Process → Cleanup → Next video
+    MAX_WORKERS = 1
 
-    # Delay between download requests (helps with Google Drive rate limits)
-    DOWNLOAD_DELAY = 3.0  # seconds
+    # Smart throttling configuration (mimics natural usage patterns)
+    MIN_DELAY = 5.0   # Minimum delay between downloads (seconds)
+    MAX_DELAY = 30.0  # Maximum delay between downloads (seconds)
+    BATCH_SIZE = 50   # Downloads before taking a batch pause
+    BATCH_PAUSE_MIN = 10  # Minimum batch pause (minutes)
+    BATCH_PAUSE_MAX = 15  # Maximum batch pause (minutes)
     
     # =====================
     
@@ -78,8 +82,8 @@ def main():
     print(f"   Destination Directory: {DESTINATION_DIRECTORY}")
     print(f"   Video Config: {FRAME_WIDTH}x{FRAME_HEIGHT}, {FRAME_RATE}fps, {BITRATE}")
     print(f"   Max Workers: {MAX_WORKERS}")
-    print(f"   Download Delay: {DOWNLOAD_DELAY}s")
-    
+    print(f"   Smart Throttling: {MIN_DELAY}-{MAX_DELAY}s delays, pause every {BATCH_SIZE} downloads")
+
     # Create processor to check existing files
     try:
         processor = BatchVideoProcessor(
@@ -90,7 +94,11 @@ def main():
             frame_rate=FRAME_RATE,
             bitrate=BITRATE,
             max_workers=MAX_WORKERS,
-            download_delay=DOWNLOAD_DELAY
+            min_delay=MIN_DELAY,
+            max_delay=MAX_DELAY,
+            batch_size=BATCH_SIZE,
+            batch_pause_min=BATCH_PAUSE_MIN,
+            batch_pause_max=BATCH_PAUSE_MAX
         )
 
         # Check existing files
@@ -229,7 +237,7 @@ def test_single_download():
     print("=" * 40)
 
     try:
-        # Create processor
+        # Create processor with faster settings for testing
         processor = BatchVideoProcessor(
             source_directory="test_downloads",
             destination_directory="test_processed",
@@ -238,8 +246,16 @@ def test_single_download():
             frame_rate=29.97,
             bitrate="6M",
             max_workers=1,
-            download_delay=2.0  # Shorter delay for testing
+            min_delay=5.0,    # Minimum delay for testing
+            max_delay=30.0,   # Maximum delay for testing
+            batch_size=5,     # Smaller batches for testing
+            batch_pause_min=1,  # Shorter pauses for testing
+            batch_pause_max=2   # Shorter pauses for testing
         )
+
+        # Initialize persistent session for testing
+        print("🔗 Setting up persistent download session for testing...")
+        processor.initialize_gdown_session()
 
         # Try multiple videos until we find one that works
         import csv
