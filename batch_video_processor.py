@@ -393,16 +393,29 @@ class BatchVideoProcessor:
         print(f"Successful: {results['successful']}")
         print(f"Failed: {results['failed']}")
         print(f"Success rate: {results['success_rate']:.1f}%")
-        
+
+        # Show failed downloads summary
+        if self.failed_downloads:
+            print(f"\n🔒 DOWNLOAD FAILURES ({len(self.failed_downloads)} videos):")
+            print(f"   These FileIDs could not be downloaded (likely permission issues):")
+            failed_list = sorted(self.failed_downloads)
+            for i, file_id in enumerate(failed_list):
+                if i < 10:  # Show first 10
+                    print(f"   {file_id}")
+                elif i == 10:
+                    print(f"   ... and {len(self.failed_downloads) - 10} more")
+                    break
+            print(f"   💡 These videos were skipped and will not be retried")
+
         if results['failed_items']:
-            print(f"\n❌ Failed videos:")
+            print(f"\n❌ PROCESSING FAILURES:")
             for item in results['failed_items'][:10]:  # Show first 10 failures
                 print(f"  {item['file_id']} - {item['error']}")
             if len(results['failed_items']) > 10:
                 print(f"  ... and {len(results['failed_items']) - 10} more")
-        
+
         if results['successful_items']:
-            print(f"\n✅ Sample successful videos:")
+            print(f"\n✅ SAMPLE SUCCESSFUL VIDEOS:")
             for item in results['successful_items'][:5]:  # Show first 5 successes
                 print(f"  {item['file_id']} -> {Path(item['output_path']).name}")
 
