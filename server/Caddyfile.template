@@ -1,0 +1,107 @@
+# FFmpeg Randomizer API - Caddy Configuration Template
+# Replace 'api.example.com' with your actual domain
+
+api.example.com {
+    # Enable gzip compression for better performance
+    encode gzip
+
+    # Reverse proxy to FastAPI application
+    reverse_proxy 127.0.0.1:8000 {
+        # Health check configuration
+        health_uri /health
+        health_interval 30s
+        health_timeout 10s
+        
+        # Proxy headers for better handling
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Increase timeout for file processing
+        timeout 5m
+    }
+
+    # Security headers
+    header {
+        # Remove server information
+        -Server
+        
+        # Security headers
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+        
+        # Content Security Policy (adjust as needed)
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+        
+        # HSTS (uncomment for production)
+        # Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+
+    # File upload size limit (adjust as needed)
+    request_body {
+        max_size 100MB
+    }
+
+    # Rate limiting (optional - uncomment if needed)
+    # rate_limit {
+    #     zone api {
+    #         key {remote}
+    #         events 60
+    #         window 1m
+    #     }
+    # }
+
+    # Logging configuration
+    log {
+        output file C:\caddy\logs\access.log {
+            roll_size 10MB
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json {
+            time_format "2006-01-02T15:04:05.000Z07:00"
+            message_key "msg"
+            level_key "level"
+            time_key "ts"
+            logger_key "logger"
+            caller_key "caller"
+        }
+    }
+
+    # Error handling
+    handle_errors {
+        @5xx expression {http.error.status_code} >= 500
+        respond @5xx "Internal Server Error" 500
+        
+        @4xx expression {http.error.status_code} >= 400
+        respond @4xx "Bad Request" {http.error.status_code}
+    }
+}
+
+# Optional: Redirect www to non-www
+www.api.example.com {
+    redir https://api.example.com{uri} permanent
+}
+
+# Optional: HTTP to HTTPS redirect (Caddy does this automatically, but you can customize)
+# http://api.example.com {
+#     redir https://api.example.com{uri} permanent
+# }
+
+# Global options (optional)
+{
+    # Email for Let's Encrypt (replace with your email)
+    email admin@example.com
+    
+    # Automatic HTTPS settings
+    auto_https on
+    
+    # Admin API (uncomment if needed for monitoring)
+    # admin localhost:2019
+    
+    # Default SNI (uncomment if needed)
+    # default_sni api.example.com
+}
