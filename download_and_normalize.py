@@ -36,7 +36,7 @@ def main():
     # =====================
     
     # CSV file with Category and FileID columns
-    CSV_FILE = "initial-video-data.csv"
+    CSV_FILE = "11092025-video-list.csv"
     
     # Directory for temporary downloads (will be created)
     DOWNLOAD_DIRECTORY = "downloads"
