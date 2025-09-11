@@ -2,11 +2,17 @@
 
 ## 🎯 **MAIN WORKFLOW FILES** (Keep These)
 
-### **1. run_complete_pipeline.py** ⭐ **RECOMMENDED**
-- **Purpose**: Complete end-to-end pipeline launcher
-- **What it does**: Runs sequence generation → video concatenation in one go
+### **1. run_pipeline.py** ⭐ **RECOMMENDED**
+- **Purpose**: Simple pipeline launcher (Python)
+- **What it does**: Runs sequence generation → video concatenation in sequence
 - **Status**: Ready to use
-- **Usage**: `python run_complete_pipeline.py`
+- **Usage**: `python run_pipeline.py`
+
+### **1b. run_pipeline.bat** ⭐ **WINDOWS USERS**
+- **Purpose**: Simple pipeline launcher (Windows batch file)
+- **What it does**: Same as above but double-clickable on Windows
+- **Status**: Ready to use
+- **Usage**: Double-click the file or run `run_pipeline.bat`
 
 ### **2. generate_my_sequence.py** ⭐ **CORE**
 - **Purpose**: Interactive sequence generator with field mapping
@@ -93,29 +99,33 @@
 
 ### ✅ **KEEP THESE FILES** (Essential for production):
 ```
-run_complete_pipeline.py          ⭐ Main launcher
-generate_my_sequence.py           ⭐ Sequence generator  
+run_pipeline.py                   ⭐ Main launcher (Python)
+run_pipeline.bat                  ⭐ Main launcher (Windows batch)
+generate_my_sequence.py           ⭐ Sequence generator
 video_concatenator.py             ⭐ Video concatenator
 download_and_process.py           ⭐ Batch processor
 batch_video_processor.py          🔧 Core engine
 sequence_generator.py             🔧 Sequence logic
 initial-video-data.csv            📊 Master data
 generated_sequence.csv            📊 Generated sequence
-test.mp4                          🎬 Output video
+test3.mp4                         🎬 Output video (latest)
 processed_videos/                 📁 Video directory
 ```
 
 ### ❌ **DELETE THESE FILES** (Development/incomplete):
 ```
 complete_video_pipeline.py        ❌ Incomplete
-complete_video_pipeline_part2.py  ❌ Incomplete  
+complete_video_pipeline_part2.py  ❌ Incomplete
+run_complete_pipeline.py          ❌ Has import issues (use run_pipeline.py instead)
 test_exponential_backoff.py       ❌ Test file
 ffmpeg_processor.py               ❌ Superseded (if exists)
 ```
 
 ## 🚀 **RECOMMENDED WORKFLOW**
 
-1. **For complete pipeline**: `python run_complete_pipeline.py`
+1. **For complete pipeline**:
+   - **Python**: `python run_pipeline.py`
+   - **Windows**: Double-click `run_pipeline.bat`
 2. **For sequence generation only**: `python generate_my_sequence.py`
 3. **For video concatenation only**: `python video_concatenator.py`
 4. **For batch processing**: `python download_and_process.py`
@@ -123,15 +133,16 @@ ffmpeg_processor.py               ❌ Superseded (if exists)
 ## 📁 **FINAL PROJECT STRUCTURE**
 ```
 ffmpeg-randomizer/
-├── run_complete_pipeline.py      ⭐ Main launcher
+├── run_pipeline.py               ⭐ Main launcher (Python)
+├── run_pipeline.bat              ⭐ Main launcher (Windows)
 ├── generate_my_sequence.py       ⭐ Sequence generator
-├── video_concatenator.py         ⭐ Video concatenator  
+├── video_concatenator.py         ⭐ Video concatenator
 ├── download_and_process.py       ⭐ Batch processor
 ├── batch_video_processor.py      🔧 Core engine
 ├── sequence_generator.py         🔧 Sequence logic
 ├── initial-video-data.csv        📊 Master inventory
 ├── generated_sequence.csv        📊 Custom sequence
-├── test.mp4                      🎬 Final video
+├── test3.mp4                     🎬 Final video (latest)
 └── processed_videos/             📁 Individual videos
 ```
 
