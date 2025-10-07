@@ -1,0 +1,117 @@
+# Cloud Run service configuration
+# This file defines the Cloud Run service configuration for the video processing service
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ffmpeg-video-processor
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        # Resource allocation
+        run.googleapis.com/memory: "4Gi"
+        run.googleapis.com/cpu: "2"
+        
+        # Scaling configuration
+        autoscaling.knative.dev/maxScale: "5"
+        autoscaling.knative.dev/minScale: "0"
+        
+        # Request timeout (1 hour for video processing)
+        run.googleapis.com/timeout: "3600s"
+        
+        # Concurrency
+        run.googleapis.com/execution-environment: gen2
+        
+        # VPC connector (if needed for private resources)
+        # run.googleapis.com/vpc-access-connector: projects/PROJECT_ID/locations/REGION/connectors/CONNECTOR_NAME
+        
+    spec:
+      # Service account for GCS access
+      serviceAccountName: video-processor@PROJECT_ID.iam.gserviceaccount.com
+      
+      # Container concurrency
+      containerConcurrency: 10
+      
+      # Request timeout
+      timeoutSeconds: 3600
+      
+      containers:
+      - image: gcr.io/PROJECT_ID/ffmpeg-video-processor:latest
+        
+        # Resource requests and limits
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        
+        # Environment variables
+        env:
+        - name: GCS_BUCKET_NAME
+          value: "bg-video-storage"
+        - name: GCP_PROJECT_ID
+          value: "PROJECT_ID"
+        - name: PORT
+          value: "8080"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        
+        # Health check
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Startup probe for slow container startup
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30  # Allow up to 5 minutes for startup
+        
+        # Volume mounts for temporary storage
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # FFmpeg needs write access
+          capabilities:
+            drop:
+            - ALL
+      
+      # Volumes
+      volumes:
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: "10Gi"  # Temporary storage for video processing
+  
+  traffic:
+  - percent: 100
+    latestRevision: true
